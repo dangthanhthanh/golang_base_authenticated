@@ -20,6 +20,7 @@ func main() {
 
 	// Kết nối PostgreSQL và Redis
 	db.Connect(cfg)
+	db.Migrate()
 	redis.Connect(cfg)
 
 	// Khởi tạo tầng repository, service, controller

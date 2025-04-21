@@ -7,12 +7,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/go-redis/redis/v8"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -36,13 +36,20 @@ func (s *UserService) Register(ctx context.Context, name, email, password string
 		return nil, errors.New("email already exists")
 	}
 
+	// Mã hóa mật khẩu người dùng
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	// Tạo đối tượng người dùng mới
 	newUser := &model.User{
-		ID:        uuid.New().String(),
+		ID:        uuid.New().String(), // UUID mới
 		Name:      name,
 		Email:     email,
-		Password:  password, // TODO: Hash sau
-		Role:      "user",
-		CreatedAt: time.Now(),
+		Password:  string(hashedPassword), // Lưu mật khẩu đã mã hóa
+		Role:      "user",                 // Vai trò mặc định
+		CreatedAt: time.Now(),             // Thời gian tạo
 	}
 
 	if err := s.repo.Create(newUser); err != nil {
@@ -82,12 +89,12 @@ func (s *UserService) GetUserProfile(ctx context.Context, userID string) (*model
 		fmt.Printf("Cache hit for user %s: %s\n", userID, email)
 	}
 
-	id, err := strconv.ParseInt(userID, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid user ID format")
-	}
+	// id, err := strconv.ParseInt(userID, 10, 64)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("invalid user ID format")
+	// }
 
-	user, err := s.repo.FindByID(id)
+	user, err := s.repo.FindByID(userID)
 	if err != nil {
 		return nil, fmt.Errorf("user not found: %v", err)
 	}

@@ -2,34 +2,31 @@ package db
 
 import (
 	"base-app/config"
-	"database/sql"
 	"fmt"
+	"log"
 
-	_ "github.com/lib/pq" // PostgreSQL driver
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var DB *sql.DB
+var DB *gorm.DB
 
 func Connect(cfg config.Config) {
 	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s",
 		cfg.DBHost,
-		cfg.DBPort,
 		cfg.DBUser,
 		cfg.DBPass,
 		cfg.DBName,
+		cfg.DBPort,
 		cfg.SSLMode,
 	)
-	fmt.Printf("dsn =: %s\n", dsn)
 
 	var err error
-	DB, err = sql.Open("postgres", dsn)
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic(fmt.Sprintf("Failed to connect to database: %v", err))
+		log.Fatalf("❌ Failed to connect to database: %v", err)
 	}
 
-	err = DB.Ping()
-	if err != nil {
-		panic(fmt.Sprintf("Failed to ping database: %v", err))
-	}
+	log.Println("✅ Connected to PostgreSQL successfully")
 }

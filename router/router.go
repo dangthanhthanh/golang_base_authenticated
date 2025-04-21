@@ -10,7 +10,7 @@ import (
 
 func SetupRoutes(app *fiber.App, userController *controller.UserController) {
 	// Group API
-	api := app.Group("/api")
+	api := app.Group("/api/v1")
 
 	// Auth routes
 	auth := api.Group("/auth")
