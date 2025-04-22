@@ -20,3 +20,7 @@ vendor/
 # Logs and temp
 *.log
 tmp/
+
+# Build directories
+.env
+.env.*

@@ -241,6 +241,5 @@ func (s *UserService) ForceDeletedUserAccount(ctx context.Context, userID string
 		// Log cảnh báo nếu có lỗi trong việc xóa cache, nhưng không ngừng thực hiện
 		fmt.Printf("warning: failed to delete user data from Redis: %v\n", err)
 	}
-	// ...
 	return nil
 }
