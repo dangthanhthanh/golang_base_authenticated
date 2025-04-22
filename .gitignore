@@ -1,26 +1,48 @@
-# Binaries for programs and plugins
+# =======================================
+# Golang build artifacts
+# =======================================
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
-
-# Output of the go coverage tool
-*.out
 *.test
+*.out
 
-# Dependency directories (remove the comment if you use Go modules)
-vendor/
+# Binaries
+bin/
+build/
+dist/
+release/
 
-# IDE/editor files
+# Test results
+coverage.*
+*.coverprofile
+
+# Temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+
+# IDE/editor configs
 .vscode/
 .idea/
-*.swp
+*.iml
 
-# Logs and temp
-*.log
-tmp/
+# OS junk
+.DS_Store
+Thumbs.db
 
-# Build directories
+# Vendor (nếu không dùng `go mod vendor`)
+vendor/
+
+# Config files
 .env
 .env.*
+*.local
+
+# Dependency dirs for tools (nếu dùng go-workspace)
+.gopath/
+pkg/

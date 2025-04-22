@@ -1,106 +1,42 @@
-# golang_base_authenticated
+# 📦 Router Package
 
-## 🧑‍💻 `UserController` - Quản lý người dùng
-
-Controller này quản lý tất cả các API liên quan đến người dùng trong hệ thống.
+Gói `router` chịu trách nhiệm định nghĩa và cấu hình các tuyến (routes) API cho ứng dụng. Đây là nơi thiết lập luồng giao tiếp giữa client và các controller tương ứng, đồng thời tích hợp các middleware như xác thực JWT.
 
 ---
 
-### 📁 File: `controller/user_controller.go`
+## 🧭 Cấu trúc Route
+
+Tất cả các route được đặt dưới prefix `/api/v1`.
+
+### 🔐 Auth Routes (`/api/v1/auth`)
+
+| Method | Endpoint     | Mô tả                  |
+|--------|--------------|------------------------|
+| POST   | /register    | Đăng ký người dùng mới |
+| POST   | /login       | Đăng nhập và lấy token |
+
+### 👤 User Routes (`/api/v1/user`)
+
+> ⚠️ **Yêu cầu JWT token hợp lệ**
+
+| Method | Endpoint     | Mô tả                    |
+|--------|--------------|--------------------------|
+| GET    | /profile     | Lấy thông tin người dùng |
 
 ---
 
-## ✅ **Endpoints**
+## 🛡️ Middleware: JWT
 
-### `POST /api/v1/register` – Đăng ký người dùng mới
+Các route yêu cầu xác thực sẽ sử dụng middleware JWT từ `github.com/gofiber/jwt/v3`. Middleware này sẽ:
 
-**Request body:**
+- Kiểm tra token từ header `Authorization`
+- Xác thực chữ ký token với secret từ config
+- Trả lỗi `401 Unauthorized` nếu token không hợp lệ hoặc không tồn tại
 
-```json
-{
-  "name": "John Doe",
-  "email": "johndoe@example.com",
-  "password": "securepassword"
-}
-```
+### 🔧 Cấu hình JWT
 
-**Response:**
-
-```json
-{
-  "message": "User registered successfully",
-  "user": {
-    "id": "uuid",
-    "name": "John Doe",
-    "email": "johndoe@example.com",
-    "created_at": "2025-04-21T12:00:00Z"
-  }
-}
-```
-
----
-
-### `POST /api/v1/login` – Đăng nhập và nhận JWT
-
-**Request body:**
-
-```json
-{
-  "email": "johndoe@example.com",
-  "password": "securepassword"
-}
-```
-
-**Response:**
-
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
----
-
-### `GET /api/v1/profile` – Lấy thông tin người dùng (yêu cầu JWT)
-
-**Headers:**
-
-```
-Authorization: Bearer <JWT Token>
-```
-
-**Response:**
-
-```json
-{
-  "id": "uuid",
-  "name": "John Doe",
-  "email": "johndoe@example.com",
-  "created_at": "2025-04-21T12:00:00Z"
-}
-```
-
----
-
-## 🔒 Middleware
-
-- Route `/profile` sử dụng middleware JWT để kiểm tra xác thực.
-- `userID` được lấy từ claim `sub` trong JWT.
-
----
-
-## ⚙️ Phụ thuộc
-
-- `service.UserService`
-- `github.com/golang-jwt/jwt/v5`
-- `github.com/gofiber/fiber/v2`
-
----
-
-## 🚧 TODO
-
-- [ ] Thêm xác thực email.
-- [ ] Mã hóa mật khẩu (hiện đang để plaintext).
-- [ ] Thêm Swagger/OpenAPI để auto-gen docs.
-- [ ] Thêm unit tests.
-
+```go
+jwt.New(jwt.Config{
+    SigningKey:   []byte(config.LoadConfig().JWTSecret),
+    ErrorHandler: jwtErrorHandler,
+})
