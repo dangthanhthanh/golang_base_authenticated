@@ -25,7 +25,8 @@ func main() {
 
 	// Khởi tạo tầng repository, service, controller
 	userRepo := repository.NewUserRepository(db.DB)
-	userService := service.NewUserService(userRepo, redis.RDB, cfg)
+	redisRepo := repository.NewRedisRepository(redis.RDB)
+	userService := service.NewUserService(userRepo, redisRepo, cfg)
 	userController := controller.NewUserController(userService)
 
 	// Khởi tạo Fiber app

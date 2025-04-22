@@ -1,68 +1,23 @@
-// package repository
-
-// import (
-// 	"base-app/model"
-// 	"database/sql"
-// 	"errors"
-// )
-
-// type UserRepository interface {
-// 	Create(user *model.User) error
-// 	FindByEmail(email string) (*model.User, error)
-// 	FindByID(id int64) (*model.User, error)
-// }
-
-// type userRepository struct {
-// 	db *sql.DB
-// }
-
-// func NewUserRepository(db *sql.DB) UserRepository {
-// 	return &userRepository{db: db}
-// }
-
-// func (r *userRepository) Create(user *model.User) error {
-// 	query := `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id`
-// 	err := r.db.QueryRow(query, user.Name, user.Email, user.Password).Scan(&user.ID)
-// 	return err
-// }
-
-// func (r *userRepository) FindByEmail(email string) (*model.User, error) {
-// 	query := `SELECT id, name, email, password FROM users WHERE email = $1`
-// 	row := r.db.QueryRow(query, email)
-
-// 	var user model.User
-// 	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password)
-// 	if err == sql.ErrNoRows {
-// 		return nil, errors.New("user not found")
-// 	}
-// 	return &user, err
-// }
-
-// func (r *userRepository) FindByID(id int64) (*model.User, error) {
-// 	query := `SELECT id, name, email, password FROM users WHERE id = $1`
-// 	row := r.db.QueryRow(query, id)
-
-// 	var user model.User
-// 	err := row.Scan(&user.ID, &user.Name, &user.Email, &user.Password)
-// 	if err == sql.ErrNoRows {
-// 		return nil, errors.New("user not found")
-// 	}
-// 	return &user, err
-// }
-
 package repository
 
 import (
 	"base-app/model"
 	"errors"
+	"fmt"
+	"time"
 
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
+// UserRepository là interface cho các thao tác với người dùng
 type UserRepository interface {
-	Create(user *model.User) error
+	Create(name string, email string, hashPassword string) (*model.User, error)
 	FindByEmail(email string) (*model.User, error)
 	FindByID(id string) (*model.User, error)
+	Update(userID string, name string, email string) (*model.User, error)
+	UpdatePassword(userID, password string) error
+	Delete(userID string) error
 }
 
 type userRepository struct {
@@ -73,9 +28,22 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) Create(user *model.User) error {
-	result := r.db.Create(user)
-	return result.Error
+func (r *userRepository) Create(name string, email string, hashPassword string) (*model.User, error) {
+	newUser := &model.User{
+		ID:        uuid.New().String(),
+		Name:      name,
+		Email:     email,
+		Password:  hashPassword,
+		Role:      model.RoleUser,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := r.db.Create(newUser).Error; err != nil {
+		return nil, fmt.Errorf("could not create user: %v", err)
+	}
+
+	return newUser, nil
 }
 
 func (r *userRepository) FindByEmail(email string) (*model.User, error) {
@@ -94,4 +62,29 @@ func (r *userRepository) FindByID(id string) (*model.User, error) {
 		return nil, errors.New("user not found")
 	}
 	return &user, result.Error
+}
+
+func (r *userRepository) Update(userID string, name string, email string) (*model.User, error) {
+	var user model.User
+	if err := r.db.Where("id = ?", userID).First(&user).Error; err != nil {
+		return nil, err
+	}
+
+	user.Name = name
+	user.Email = email
+	user.UpdatedAt = time.Now()
+
+	if err := r.db.Save(&user).Error; err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (r *userRepository) UpdatePassword(userID string, newPassword string) error {
+	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("password", newPassword).Error
+}
+
+func (r *userRepository) Delete(userID string) error {
+	return r.db.Where("id = ?", userID).Delete(&model.User{}).Error
 }
