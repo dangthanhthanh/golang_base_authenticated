@@ -12,6 +12,14 @@ func SetupRoutes(app *fiber.App, userController *controller.UserController) {
 	// Group API
 	api := app.Group("/api/v1")
 
+	// Hello endpoint - public, no authentication required
+	api.Get("/hello", func(c *fiber.Ctx) error {
+		return c.JSON(fiber.Map{
+			"message": "Hello from Golang Base Authenticated API!",
+			"status":  "success",
+		})
+	})
+
 	// Auth routes
 	auth := api.Group("/auth")
 	auth.Post("/register", userController.Register)
