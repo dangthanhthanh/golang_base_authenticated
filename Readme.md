@@ -8,6 +8,12 @@ Gói `router` chịu trách nhiệm định nghĩa và cấu hình các tuyến 
 
 Tất cả các route được đặt dưới prefix `/api/v1`.
 
+### 👋 Public Routes (`/api/v1`)
+
+| Method | Endpoint     | Mô tả                    |
+|--------|--------------|--------------------------|
+| GET    | /hello       | Endpoint chào hỏi đơn giản |
+
 ### 🔐 Auth Routes (`/api/v1/auth`)
 
 | Method | Endpoint     | Mô tả                  |
